@@ -1,0 +1,19 @@
+﻿DECLARE
+  v_function_code     VARCHAR2(30) := '&fc';
+  v_main_service_name VARCHAR2(300); --入口页面 
+BEGIN
+  --循环测试环境该功能分配的BM
+  FOR rec IN (SELECT s.function_id, s.bm_name, f.service_id
+                FROM sys_function_bm_access@tcl_kt s, sys_function@tcl_kt f
+               WHERE s.function_id = f.function_id
+                 AND f.function_code = v_function_code) LOOP
+    IF rec.service_id IS NOT NULL THEN
+      SELECT s.service_name
+        INTO v_main_service_name
+        FROM sys_service@tcl_kt s
+       WHERE s.service_id = rec.service_id;
+      --调用BM分配                             
+      sys_data_load_pkg.load_function_bm(v_main_service_name, rec.bm_name);
+    END IF;
+  END LOOP;
+END;
